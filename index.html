@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="sv">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="./icon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sprinkler Service Kalkylator</title>
+    <meta name="theme-color" content="#00529B" />
+    <link rel="manifest" href="./manifest.json" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: '#00529B',
+              secondary: '#00A4E4',
+              accent: '#FFC107',
+              danger: '#D32F2F',
+            },
+            screens: {
+              'print': {'raw': 'print'},
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      @media print {
+        body {
+          background-color: #fff;
+          font-size: 10pt;
+        }
+        .no-print, .no-print * {
+          display: none !important;
+        }
+        main {
+          padding-top: 0 !important;
+          margin: 0 !important;
+        }
+        .max-w-7xl {
+           max-width: none !important;
+           padding: 0 !important;
+           margin: 0 !important;
+        }
+        .bg-white.p-6.rounded-lg.shadow-lg {
+          box-shadow: none !important;
+          border: 1px solid #e2e8f0;
+          padding: 1rem;
+        }
+        h1 {
+          font-size: 24pt;
+          margin-bottom: 2rem;
+        }
+        h2 {
+            font-size: 14pt;
+            margin-top: 1.5rem;
+            page-break-after: avoid;
+        }
+        .interval-container {
+          page-break-inside: avoid;
+        }
+        table {
+          width: 100%;
+        }
+      }
+    </style>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@18.3.1",
+    "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "jspdf": "https://aistudiocdn.com/jspdf@^3.0.3",
+    "jspdf-autotable": "https://aistudiocdn.com/jspdf-autotable@^5.0.2"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="bg-gray-100">
+    <div id="root"></div>
+    <script type="text/babel" data-presets="react" data-type="module" src="./index.js"></script>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>

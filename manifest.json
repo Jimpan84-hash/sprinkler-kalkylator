@@ -1,0 +1,16 @@
+{
+  "short_name": "Sprinkler Kalkyl",
+  "name": "Sprinkler Service Kalkylator",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192 512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#00529B",
+  "background_color": "#ffffff",
+  "description": "En kalkylator för att skapa offerter för service av sprinkleranläggningar."
+}

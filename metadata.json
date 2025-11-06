@@ -1,0 +1,5 @@
+{
+  "name": "Sprinkler Service Quote Calculator",
+  "description": "A web-based quote and calculation app for sprinkler and fire protection system services. It allows for quick calculation of quotes based on customer-selected service intervals and system components.",
+  "requestFramePermissions": []
+}
