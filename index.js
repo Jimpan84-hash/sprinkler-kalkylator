@@ -301,6 +301,75 @@ const Summary = ({ grandTotal, onSave, onLoad, onPrint }) => {
   );
 };
 
+const PrintableQuote = ({ customerInfo, calculationResult }) => {
+    const currencyFormatter = new Intl.NumberFormat('sv-SE', { style: 'currency', currency: 'SEK' });
+    const today = new Date().toLocaleDateString('sv-SE');
+
+    return (
+        <div className="hidden print:block p-8 font-sans">
+            <header className="flex justify-between items-start mb-12 border-b-2 border-primary pb-4">
+                <div>
+                    <h1 className="text-4xl font-bold text-primary">Offert Serviceavtal</h1>
+                    <p className="text-gray-600">Sprinkleranläggning</p>
+                </div>
+                <div className="text-right">
+                    <p className="font-semibold">Datum: {today}</p>
+                    <p className="text-sm text-gray-500">Offertnummer: {new Date().getFullYear()}-001</p> 
+                </div>
+            </header>
+
+            <section className="mb-12">
+                <h2 className="text-2xl font-semibold text-gray-800 mb-4 border-b pb-2">Kundinformation</h2>
+                <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-gray-700">
+                    <p><span className="font-semibold">Kund:</span> {customerInfo.name || 'Ej specificerat'}</p>
+                    <p><span className="font-semibold">Anläggning:</span> {customerInfo.facility || 'Ej specificerat'}</p>
+                    <p><span className="font-semibold">Adress:</span> {customerInfo.address || 'Ej specificerat'}</p>
+                    <p><span className="font-semibold">Kontaktperson:</span> {customerInfo.contact || 'Ej specificerat'}</p>
+                </div>
+            </section>
+
+            <section className="mb-12">
+                <h2 className="text-2xl font-semibold text-gray-800 mb-4 border-b pb-2">Summering av serviceintervaller</h2>
+                <table className="min-w-full divide-y divide-gray-300">
+                    <thead className="bg-gray-100">
+                        <tr>
+                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 uppercase">Serviceintervall</th>
+                            <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700 uppercase">Tillfällen/år</th>
+                            <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700 uppercase">Kostnad/tillfälle</th>
+                            <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700 uppercase">Total årskostnad</th>
+                        </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                        {calculationResult.intervals.map(interval => (
+                            <tr key={interval.key}>
+                                <td className="px-4 py-4 whitespace-nowrap text-base text-gray-800 font-medium">{interval.name}</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-right text-base text-gray-600">{interval.occasions}</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-right text-base text-gray-600">{currencyFormatter.format(interval.costPerOccasion)}</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-right text-base text-gray-600 font-semibold">{currencyFormatter.format(interval.totalCostPerYear)}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </section>
+            
+            <section className="flex justify-end mt-8">
+                 <div className="w-full max-w-sm p-6 bg-gray-100 rounded-lg">
+                    <div className="flex justify-between items-center">
+                        <span className="text-xl font-medium text-gray-800">Total årskostnad (exkl. moms):</span>
+                        <p className="text-3xl font-bold text-primary">{currencyFormatter.format(calculationResult.grandTotal)}</p>
+                    </div>
+                </div>
+            </section>
+
+            <footer className="mt-24 pt-4 border-t text-center text-xs text-gray-500">
+                <p>Priser är angivna exklusive moms. Offerten är giltig i 30 dagar.</p>
+                <p className="font-semibold mt-2">Ditt Sprinkler Service AB | Exempelgatan 1, 123 45 Staden | org.nr 555555-5555</p>
+            </footer>
+        </div>
+    );
+};
+
+
 // --- APP ---
 const createInitialTasks = () => {
     const tasks = {};
@@ -389,22 +458,25 @@ const App = () => {
 
     return (
         <>
-            <div className="min-h-screen bg-gray-100 text-gray-800">
-                <header className="bg-primary text-white shadow-md">
-                    <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                        <h1 className="text-3xl font-bold leading-tight">Sprinkler Service Kalkylator</h1>
-                    </div>
-                </header>
-                <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-                    <div className="px-4 py-6 sm:px-0 space-y-8">
-                        <ConfigPanel state={state} onStateChange={handleStateChange} onCustomerInfoChange={handleCustomerInfoChange} onMultiplierChange={handleMultiplierChange} onIntervalToggle={handleIntervalToggle} />
-                        <QuoteDetails calculationResult={calculationResult} onTaskHoursChange={handleTaskHoursChange} onTaskRemove={handleTaskRemove} onTaskAdd={handleTaskAdd} />
-                    </div>
-                </main>
+            <PrintableQuote customerInfo={state.customerInfo} calculationResult={calculationResult} />
+            <div className="screen-only">
+                <div className="min-h-screen bg-gray-100 text-gray-800">
+                    <header className="bg-primary text-white shadow-md">
+                        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                            <h1 className="text-3xl font-bold leading-tight">Sprinkler Service Kalkylator</h1>
+                        </div>
+                    </header>
+                    <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+                        <div className="px-4 py-6 sm:px-0 space-y-8">
+                            <ConfigPanel state={state} onStateChange={handleStateChange} onCustomerInfoChange={handleCustomerInfoChange} onMultiplierChange={handleMultiplierChange} onIntervalToggle={handleIntervalToggle} />
+                            <QuoteDetails calculationResult={calculationResult} onTaskHoursChange={handleTaskHoursChange} onTaskRemove={handleTaskRemove} onTaskAdd={handleTaskAdd} />
+                        </div>
+                    </main>
+                </div>
+                {calculationResult.intervals.length > 0 && 
+                    <Summary grandTotal={calculationResult.grandTotal} onSave={handleSave} onLoad={handleLoad} onPrint={handlePrint} />
+                }
             </div>
-            {calculationResult.intervals.length > 0 && 
-                <Summary grandTotal={calculationResult.grandTotal} onSave={handleSave} onLoad={handleLoad} onPrint={handlePrint} />
-            }
         </>
     );
 };
