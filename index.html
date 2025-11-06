@@ -29,34 +29,9 @@
           -webkit-print-color-adjust: exact;
           print-color-adjust: exact;
         }
-        header, .config-panel, .summary-bar, .add-task-controls, .no-print {
+        /* Hide the main interactive UI when printing */
+        .screen-only {
           display: none !important;
-        }
-        main {
-          padding-top: 0 !important;
-          margin: 0 !important;
-          max-width: 100% !important;
-        }
-        .printable-content {
-          box-shadow: none !important;
-          border: 1px solid #e2e8f0;
-          margin-top: 2rem;
-          page-break-inside: avoid;
-        }
-        h1, h2, h3, p, span, div, td, th {
-            color: black !important;
-        }
-        input[type="number"] {
-            border: none !important;
-            background: transparent !important;
-            box-shadow: none !important;
-            padding: 4px; /* Behåll lite padding för läsbarhet */
-            -moz-appearance: textfield; /* Firefox */
-        }
-        input[type="number"]::-webkit-inner-spin-button,
-        input[type="number"]::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
         }
       }
     </style>
@@ -73,11 +48,9 @@
   }
 }
 </script>
-<link rel="stylesheet" href="/index.css">
 </head>
   <body class="bg-gray-100">
     <div id="root"></div>
     <script type="text/babel" data-presets="react" data-type="module" src="./index.js"></script>
-  <script type="module" src="/index.tsx"></script>
-</body>
+  </body>
 </html>
