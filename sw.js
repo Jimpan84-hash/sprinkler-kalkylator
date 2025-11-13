@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sprinkler-quote-cache-v7'; // Bump version for clean install
+const CACHE_NAME = 'sprinkler-quote-cache-v14'; // Bump version for clean install
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
