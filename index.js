@@ -363,7 +363,7 @@ const PrintableQuote = ({ customerInfo, calculationResult }) => {
 
             <footer className="mt-24 pt-4 border-t text-center text-xs text-gray-500">
                 <p>Priser är angivna exklusive moms. Offerten är giltig i 30 dagar.</p>
-                <p className="font-semibold mt-2">Ditt Sprinkler Service AB | Exempelgatan 1, 123 45 Staden | org.nr 555555-5555</p>
+                <p className="font-semibold mt-2">Sprinklerteamet Norr AB | Tegelbruksvägen 18b, 907 42 Umeå | org.nr 559309-1704</p>
             </footer>
         </div>
     );
