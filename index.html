@@ -24,6 +24,10 @@
     </script>
     <style>
       @media print {
+        @page {
+          size: A4 portrait;
+          margin: 1.5cm;
+        }
         body {
           background-color: white !important;
           -webkit-print-color-adjust: exact;
@@ -48,9 +52,11 @@
   }
 }
 </script>
+<link rel="stylesheet" href="/index.css">
 </head>
   <body class="bg-gray-100">
     <div id="root"></div>
     <script type="text/babel" data-presets="react" data-type="module" src="./index.js"></script>
-  </body>
+  <script type="module" src="/index.tsx"></script>
+</body>
 </html>
