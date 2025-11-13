@@ -54,10 +54,10 @@ const InputField = ({ label, value, onChange }) => (
   </div>
 );
 
-const NumberInputField = ({ label, value, onChange }) => (
+const NumberInputField = ({ label, value, onChange, step = "1" }) => (
   <div>
     <label className="block text-sm font-medium text-gray-700">{label}</label>
-    <input type="number" value={value} onChange={onChange} className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm" />
+    <input type="number" value={value} onChange={onChange} step={step} className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm" />
   </div>
 );
 
@@ -69,6 +69,7 @@ const CustomerInfoSection = ({ customerInfo, onChange }) => (
       <InputField label="Anläggning" value={customerInfo.facility} onChange={e => onChange('facility', e.target.value)} />
       <InputField label="Adress" value={customerInfo.address} onChange={e => onChange('address', e.target.value)} />
       <InputField label="Kontaktperson" value={customerInfo.contact} onChange={e => onChange('contact', e.target.value)} />
+      <InputField label="Offertnummer" value={customerInfo.offertnummer} onChange={e => onChange('offertnummer', e.target.value)} />
     </div>
   </div>
 );
@@ -108,13 +109,13 @@ const MultiplierInputs = ({ multipliers, onChange }) => {
     );
 };
 
-const RateInputs = ({ hourlyRate, travelCost, margin, onStateChange }) => (
+const PricingAndTravelInputs = ({ hourlyRate, pricePerKm, distance, onStateChange }) => (
     <div className="space-y-3">
-        <h2 className="text-xl font-bold text-gray-800 border-b pb-2">Prissättning</h2>
+        <h2 className="text-xl font-bold text-gray-800 border-b pb-2">Timpris & Resekostnad</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <NumberInputField label="Timkostnad (kr)" value={hourlyRate} onChange={e => onStateChange('hourlyRate', parseInt(e.target.value, 10) || 0)} />
-            <NumberInputField label="Bilkostnad/Resa (kr)" value={travelCost} onChange={e => onStateChange('travelCost', parseInt(e.target.value, 10) || 0)} />
-            <NumberInputField label="Marginal (%)" value={margin} onChange={e => onStateChange('margin', parseInt(e.target.value, 10) || 0)} />
+            <NumberInputField label="Avstånd enkel resa (km)" value={distance} onChange={e => onStateChange('distance', parseInt(e.target.value, 10) || 0)} />
+            <NumberInputField label="Pris per km (kr)" value={pricePerKm} onChange={e => onStateChange('pricePerKm', parseFloat(e.target.value) || 0)} step="0.1" />
         </div>
     </div>
 );
@@ -124,7 +125,7 @@ const ConfigPanel = ({ state, onStateChange, onCustomerInfoChange, onMultiplierC
     <CustomerInfoSection customerInfo={state.customerInfo} onChange={onCustomerInfoChange} />
     <IntervalSelector selectedIntervals={state.selectedIntervals} onToggle={onIntervalToggle} />
     <MultiplierInputs multipliers={state.multipliers} onChange={onMultiplierChange} />
-    <RateInputs hourlyRate={state.hourlyRate} travelCost={state.travelCost} margin={state.margin} onStateChange={onStateChange} />
+    <PricingAndTravelInputs hourlyRate={state.hourlyRate} pricePerKm={state.pricePerKm} distance={state.distance} onStateChange={onStateChange} />
   </div>
 );
 
@@ -301,25 +302,28 @@ const Summary = ({ grandTotal, onSave, onLoad, onPrint }) => {
   );
 };
 
-const PrintableQuote = ({ customerInfo, calculationResult }) => {
+const PrintableQuote = ({ customerInfo, calculationResult, multipliers }) => {
     const currencyFormatter = new Intl.NumberFormat('sv-SE', { style: 'currency', currency: 'SEK' });
     const today = new Date().toLocaleDateString('sv-SE');
+    const { larmventilerVat, larmventilerTorr, dieselpumpar, flodesvakter, sprinklercentraler } = multipliers;
+    const showCalculationBasis = larmventilerVat > 0 || larmventilerTorr > 0 || dieselpumpar > 0 || flodesvakter > 0 || sprinklercentraler > 0;
+
 
     return (
         <div className="hidden print:block p-8 font-sans">
             <header className="flex justify-between items-start mb-12 border-b-2 border-primary pb-4">
                 <div>
-                    <h1 className="text-4xl font-bold text-primary">Offert Serviceavtal</h1>
+                    <h1 className="text-3xl font-bold text-primary">Offert Serviceavtal</h1>
                     <p className="text-gray-600">Sprinkleranläggning</p>
                 </div>
                 <div className="text-right">
                     <p className="font-semibold">Datum: {today}</p>
-                    <p className="text-sm text-gray-500">Offertnummer: {new Date().getFullYear()}-001</p> 
+                    <p className="text-sm text-gray-500">Offertnummer: {customerInfo.offertnummer || 'Ej specificerat'}</p> 
                 </div>
             </header>
 
             <section className="mb-12">
-                <h2 className="text-2xl font-semibold text-gray-800 mb-4 border-b pb-2">Kundinformation</h2>
+                <h2 className="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Kundinformation</h2>
                 <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-gray-700">
                     <p><span className="font-semibold">Kund:</span> {customerInfo.name || 'Ej specificerat'}</p>
                     <p><span className="font-semibold">Anläggning:</span> {customerInfo.facility || 'Ej specificerat'}</p>
@@ -327,25 +331,38 @@ const PrintableQuote = ({ customerInfo, calculationResult }) => {
                     <p><span className="font-semibold">Kontaktperson:</span> {customerInfo.contact || 'Ej specificerat'}</p>
                 </div>
             </section>
+            
+            {showCalculationBasis && (
+                <section className="mb-12">
+                    <h2 className="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Beräkningsunderlag</h2>
+                    <div className="text-gray-700 space-y-1">
+                        {larmventilerVat > 0 && <p><span className="font-semibold">Antal larmventiler (våt):</span> {larmventilerVat} st</p>}
+                        {larmventilerTorr > 0 && <p><span className="font-semibold">Antal larmventiler (torr):</span> {larmventilerTorr} st</p>}
+                        {dieselpumpar > 0 && <p><span className="font-semibold">Antal dieselpumpar:</span> {dieselpumpar} st</p>}
+                        {flodesvakter > 0 && <p><span className="font-semibold">Antal flödesvakter:</span> {flodesvakter} st</p>}
+                        {sprinklercentraler > 0 && <p><span className="font-semibold">Antal sprinklercentraler:</span> {sprinklercentraler} st</p>}
+                    </div>
+                </section>
+            )}
 
             <section className="mb-12">
-                <h2 className="text-2xl font-semibold text-gray-800 mb-4 border-b pb-2">Summering av serviceintervaller</h2>
+                <h2 className="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Summering av serviceintervaller</h2>
                 <table className="min-w-full divide-y divide-gray-300">
                     <thead className="bg-gray-100">
                         <tr>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 uppercase">Serviceintervall</th>
-                            <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700 uppercase">Tillfällen/år</th>
-                            <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700 uppercase">Kostnad/tillfälle</th>
-                            <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700 uppercase">Total årskostnad</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Serviceintervall</th>
+                            <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase">Tillfällen/år</th>
+                            <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase">Kostnad/tillfälle</th>
+                            <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase">Total årskostnad</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                         {calculationResult.intervals.map(interval => (
                             <tr key={interval.key}>
-                                <td className="px-4 py-4 whitespace-nowrap text-base text-gray-800 font-medium">{interval.name}</td>
-                                <td className="px-4 py-4 whitespace-nowrap text-right text-base text-gray-600">{interval.occasions}</td>
-                                <td className="px-4 py-4 whitespace-nowrap text-right text-base text-gray-600">{currencyFormatter.format(interval.costPerOccasion)}</td>
-                                <td className="px-4 py-4 whitespace-nowrap text-right text-base text-gray-600 font-semibold">{currencyFormatter.format(interval.totalCostPerYear)}</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-800 font-medium">{interval.name}</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-right text-sm text-gray-600">{interval.occasions}</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-right text-sm text-gray-600">{currencyFormatter.format(interval.costPerOccasion)}</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-right text-sm text-gray-600 font-semibold">{currencyFormatter.format(interval.totalCostPerYear)}</td>
                             </tr>
                         ))}
                     </tbody>
@@ -355,15 +372,15 @@ const PrintableQuote = ({ customerInfo, calculationResult }) => {
             <section className="flex justify-end mt-8">
                  <div className="w-full max-w-sm p-6 bg-gray-100 rounded-lg">
                     <div className="flex justify-between items-center">
-                        <span className="text-xl font-medium text-gray-800">Total årskostnad (exkl. moms):</span>
-                        <p className="text-3xl font-bold text-primary">{currencyFormatter.format(calculationResult.grandTotal)}</p>
+                        <span className="text-lg font-medium text-gray-800">Total årskostnad (exkl. moms):</span>
+                        <p className="text-2xl font-bold text-primary">{currencyFormatter.format(calculationResult.grandTotal)}</p>
                     </div>
                 </div>
             </section>
 
             <footer className="mt-24 pt-4 border-t text-center text-xs text-gray-500">
                 <p>Priser är angivna exklusive moms. Offerten är giltig i 30 dagar.</p>
-                <p className="font-semibold mt-2">Sprinklerteamet Norr AB | Tegelbruksvägen 18b, 907 42 Umeå | org.nr 559309-1704</p>
+                <p className="font-semibold mt-2">Sprinklerteamet Norr AB | Tegelbruksvägen 18b, 907 42 Umeå | Organisationsnummer: 559309-1704</p>
             </footer>
         </div>
     );
@@ -385,12 +402,12 @@ const createInitialTasks = () => {
 };
 
 const INITIAL_STATE = {
-    customerInfo: { name: '', facility: '', address: '', contact: '' },
+    customerInfo: { name: '', facility: '', address: '', contact: '', offertnummer: '' },
     selectedIntervals: [],
     multipliers: { larmventilerVat: 1, larmventilerTorr: 0, dieselpumpar: 0, flodesvakter: 0, sprinklercentraler: 0, },
     hourlyRate: 650,
-    travelCost: 500,
-    margin: 10,
+    pricePerKm: 10,
+    distance: 0,
     tasksByInterval: createInitialTasks(),
 };
 
@@ -443,22 +460,103 @@ const App = () => {
                 const cost = taskTotalHours * state.hourlyRate;
                 return { ...task, multiplier, totalHours: taskTotalHours, cost };
             });
-            const costPerOccasionBeforeMargin = (totalHours * state.hourlyRate) + state.travelCost;
-            const costPerOccasion = costPerOccasionBeforeMargin * (1 + state.margin / 100);
+
+            const travelCostPerOccasion = state.distance * state.pricePerKm * 2; // * 2 for round trip
+            const costPerOccasion = (totalHours * state.hourlyRate) + travelCostPerOccasion;
             const totalCostPerYear = costPerOccasion * definition.occasions;
+
             return { key, name: definition.name, occasions: definition.occasions, tasks: calculatedTasks, totalHours, costPerOccasion, totalCostPerYear, };
         });
         const grandTotal = calculatedIntervals.reduce((sum, interval) => sum + interval.totalCostPerYear, 0);
         return { intervals: calculatedIntervals, grandTotal };
     }, [state]);
 
-    const handleSave = () => { try { localStorage.setItem('sprinkler-quote-app-data', JSON.stringify(state)); alert('Kalkyl sparad!'); } catch (error) { console.error('Failed to save state:', error); alert('Kunde inte spara kalkyl.'); } };
-    const handleLoad = () => { try { const savedState = localStorage.getItem('sprinkler-quote-app-data'); if (savedState) { setState(JSON.parse(savedState)); alert('Kalkyl laddad!'); } else { alert('Ingen sparad kalkyl hittades.'); } } catch (error) { console.error('Failed to load state:', error); alert('Kunde inte ladda kalkyl.'); } };
+    const handleSave = async () => {
+        const stateToSave = JSON.stringify(state, null, 2);
+        const { offertnummer, facility } = state.customerInfo;
+        const date = new Date().toISOString().slice(0, 10);
+        const fileName = `${offertnummer || 'offert'}-${facility || 'anlaggning'}-${date}.json`;
+
+        if (window.showSaveFilePicker) {
+            const options = {
+                suggestedName: fileName,
+                types: [{
+                    description: 'JSON Files',
+                    accept: { 'application/json': ['.json'] },
+                }],
+            };
+            try {
+                const fileHandle = await window.showSaveFilePicker(options);
+                const writable = await fileHandle.createWritable();
+                await writable.write(stateToSave);
+                await writable.close();
+                alert('Kalkylen har sparats!');
+            } catch (err) {
+                if (err.name === 'AbortError') {
+                    console.log('Save operation cancelled by user.');
+                } else {
+                    console.error('Failed to save state with File System Access API:', err);
+                    alert('Kunde inte spara kalkylen.');
+                }
+            }
+        } else {
+            // Fallback for older browsers
+            try {
+                const blob = new Blob([stateToSave], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                alert('Kalkylen har laddats ner som en fil!');
+            } catch (error) {
+                console.error('Failed to save state to file (fallback):', error);
+                alert('Kunde inte spara kalkylen som en fil.');
+            }
+        }
+    };
+
+    const handleLoad = () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json,application/json';
+        input.onchange = e => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = readerEvent => {
+                try {
+                    const content = readerEvent.target.result;
+                    const loadedState = JSON.parse(content);
+                    if (loadedState && loadedState.customerInfo && loadedState.tasksByInterval) {
+                       setState(loadedState);
+                       alert('Kalkylen har laddats!');
+                    } else {
+                       alert('Ogiltig fil. Välj en giltig kalkylfil.');
+                    }
+                } catch (error) {
+                    console.error('Failed to load or parse file:', error);
+                    alert('Kunde inte ladda kalkylen. Filen kan vara korrupt.');
+                }
+            };
+            reader.onerror = error => {
+                console.error('Error reading file:', error);
+                alert('Ett fel uppstod vid läsning av filen.');
+            };
+            reader.readAsText(file);
+        };
+        input.click();
+    };
+
     const handlePrint = () => { window.print(); };
 
     return (
         <>
-            <PrintableQuote customerInfo={state.customerInfo} calculationResult={calculationResult} />
+            <PrintableQuote customerInfo={state.customerInfo} calculationResult={calculationResult} multipliers={state.multipliers} />
             <div className="screen-only">
                 <div className="min-h-screen bg-gray-100 text-gray-800">
                     <header className="bg-primary text-white shadow-md">
@@ -473,9 +571,7 @@ const App = () => {
                         </div>
                     </main>
                 </div>
-                {calculationResult.intervals.length > 0 && 
-                    <Summary grandTotal={calculationResult.grandTotal} onSave={handleSave} onLoad={handleLoad} onPrint={handlePrint} />
-                }
+                <Summary grandTotal={calculationResult.grandTotal} onSave={handleSave} onLoad={handleLoad} onPrint={handlePrint} />
             </div>
         </>
     );
