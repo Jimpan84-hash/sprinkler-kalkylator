@@ -12,13 +12,13 @@ const ALL_TASKS = [
   { id: 'automatik_pumpstart', name: 'Automatik pumpstart (start tryck)', baseHours: 0.25 },
   { id: 'manuell_pumpstart', name: 'Manuell pumpstart', baseHours: 0.25 },
   { id: 'uppvarmning', name: 'Uppvärmning', baseHours: 0.25 },
-  { id: 'batterier', name: 'Kontroll av batterier (elektrolytnivå, densitet mm)', baseHours: 0.75 },
+  { id: 'batterier', name: 'Kontroll av batterier (elektrolytnivå, densitet mm)', baseHours: 0.5 },
   { id: 'riskklass', name: 'Kontroll av riskklass', baseHours: 0.5 },
-  { id: 'sprinkler_kontrollventiler', name: 'Kontroll av sprinkler, kontrollventiler', baseHours: 2 },
-  { id: 'rornat_upphang', name: 'Kontroll av rörnät och upphängningar', baseHours: 2 },
+  { id: 'sprinkler_kontrollventiler', name: 'Kontroll av sprinkler, kontrollventiler', baseHours: 0.25 },
+  { id: 'rornat_upphang', name: 'Kontroll av rörnät och upphängningar', baseHours: 1 },
   { id: 'vattenkalla_larmventil', name: 'Kontroll av vattenkälla via larmventil', baseHours: 0.25 },
   { id: 'kraftforsorjning', name: 'Kraftförsörjning', baseHours: 0.25 },
-  { id: 'avstangningsventiler', name: 'Avstängningsventiler', baseHours: 0.5 },
+  { id: 'avstangningsventiler', name: 'Avstängningsventiler', baseHours: 0.25 },
   { id: 'flodesvakt_pressostat', name: 'Funktion Flödesvakt, larmpressostat', baseHours: 0.5 },
   { id: 'reservdelar', name: 'Reservdelar', baseHours: 0.25 },
   { id: 'larmoverforing', name: 'Larmöverföring', baseHours: 0.5 },
@@ -27,14 +27,24 @@ const ALL_TASKS = [
   { id: 'pafyllningsventiler', name: 'Påfyllningsventiler för bassänger', baseHours: 0.25 },
   { id: 'torrorsventil_flodesprov', name: 'Torrörsventil. Partiellt flödesprov', baseHours: 0.5 },
   { id: 'silar', name: 'Silar', baseHours: 0.5 },
+  { id: 'kondenskar', name: 'Kontroll av kondenskärl', baseHours: 0.5 },
 ];
 
+const DIESEL_TASKS = ['bransle_olja_kylvatten', 'automatik_pumpstart', 'manuell_pumpstart', 'misslyckat_start'];
+
+// Helper to build interval arrays based on inheritance requirements
+const VECKO_TASKS = ['manometer', 'ventiler_lage', 'vattenniva', 'bransle_olja_kylvatten', 'turbinklocka', 'automatik_pumpstart', 'manuell_pumpstart', 'uppvarmning'];
+const MANAD_TASKS = [...VECKO_TASKS, 'batterier'];
+const KVARTAL_TASKS = [...MANAD_TASKS, 'riskklass', 'sprinkler_kontrollventiler', 'rornat_upphang', 'kraftforsorjning', 'avstangningsventiler', 'reservdelar', 'vattenkalla_larmventil', 'flodesvakt_pressostat', 'torrorsventil_flodesprov'];
+const HALVAR_TASKS = [...KVARTAL_TASKS, 'larmoverforing', 'misslyckat_start', 'pafyllningsventiler'];
+const HELAR_TASKS = ALL_TASKS.map(t => t.id); // Contains everything including 'kondenskar'
+
 const INTERVAL_DEFINITIONS = {
-  vecko: { name: 'Veckoservice', occasions: 40, taskIds: ['manometer', 'ventiler_lage', 'vattenniva', 'bransle_olja_kylvatten'], },
-  manad: { name: 'Månadsservice', occasions: 8, taskIds: ['manometer', 'ventiler_lage', 'vattenniva', 'bransle_olja_kylvatten', 'automatik_pumpstart', 'manuell_pumpstart', 'uppvarmning'], },
-  kvartal: { name: 'Kvartalsservice', occasions: 2, taskIds: ['manometer', 'ventiler_lage', 'vattenniva', 'turbinklocka', 'bransle_olja_kylvatten', 'automatik_pumpstart', 'manuell_pumpstart', 'uppvarmning', 'vattenkalla_larmventil', 'flodesvakt_pressostat', 'torrorsventil_flodesprov'], },
-  halvar: { name: 'Halvårsservice', occasions: 1, taskIds: ['manometer', 'ventiler_lage', 'vattenniva', 'turbinklocka', 'bransle_olja_kylvatten', 'automatik_pumpstart', 'manuell_pumpstart', 'uppvarmning', 'batterier', 'vattenkalla_larmventil', 'kraftforsorjning', 'avstangningsventiler', 'flodesvakt_pressostat', 'larmoverforing', 'misslyckat_start', 'pafyllningsventiler', 'torrorsventil_flodesprov'], },
-  helar: { name: 'Helårsservice', occasions: 1, taskIds: ALL_TASKS.map(t => t.id), },
+  vecko: { name: 'Veckoservice', occasions: 40, taskIds: [...new Set(VECKO_TASKS)] },
+  manad: { name: 'Månadsservice', occasions: 8, taskIds: [...new Set(MANAD_TASKS)] },
+  kvartal: { name: 'Kvartalsservice', occasions: 2, taskIds: [...new Set(KVARTAL_TASKS)] },
+  halvar: { name: 'Halvårsservice', occasions: 1, taskIds: [...new Set(HALVAR_TASKS)] },
+  helar: { name: 'Helårsservice', occasions: 1, taskIds: [...new Set(HELAR_TASKS)] },
 };
 
 const MULTIPLIER_RULES = {
@@ -43,6 +53,7 @@ const MULTIPLIER_RULES = {
   dieselpumpar: ['bransle_olja_kylvatten', 'automatik_pumpstart', 'manuell_pumpstart', 'misslyckat_start'],
   flodesvakter: ['flodesvakt_pressostat'],
   sprinklercentraler: ['manometer', 'ventiler_lage', 'avstangningsventiler', 'larmoverforing', 'kapacitetsprov'],
+  kondenskar: ['kondenskar'],
 };
 
 // --- COMPONENTS ---
@@ -57,7 +68,14 @@ const InputField = ({ label, value, onChange }) => (
 const NumberInputField = ({ label, value, onChange, step = "1" }) => (
   <div>
     <label className="block text-sm font-medium text-gray-700">{label}</label>
-    <input type="number" value={value} onChange={onChange} step={step} className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm" />
+    <input 
+      type="number" 
+      value={value} 
+      onChange={onChange} 
+      onFocus={(e) => e.target.select()} // Auto-select on focus to easily replace 0
+      step={step} 
+      className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm" 
+    />
   </div>
 );
 
@@ -96,26 +114,38 @@ const MultiplierInputs = ({ multipliers, onChange }) => {
         dieselpumpar: "Dieselpumpar",
         flodesvakter: "Flödesvakter",
         sprinklercentraler: "Sprinklercentraler",
+        // Kondenskärl handled separately below
     };
+    
     return (
         <div className="space-y-3">
             <h2 className="text-xl font-bold text-gray-800 border-b pb-2">Antal / Multiplikatorer</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                {Object.keys(multipliers).map(key => (
+                {Object.keys(labels).map(key => (
                     <NumberInputField key={key} label={labels[key]} value={multipliers[key]} onChange={e => onChange(key, parseInt(e.target.value, 10) || 0)} />
                 ))}
+                {/* Condition for Kondenskärl */}
+                {multipliers.larmventilerTorr > 0 && (
+                   <div className="bg-yellow-50 p-1 rounded">
+                     <NumberInputField 
+                        label="Antal kondenskärl" 
+                        value={multipliers.kondenskar} 
+                        onChange={e => onChange('kondenskar', parseInt(e.target.value, 10) || 0)} 
+                     />
+                   </div>
+                )}
             </div>
         </div>
     );
 };
 
-const PricingAndTravelInputs = ({ hourlyRate, pricePerKm, distance, onStateChange }) => (
+const PricingAndTravelInputs = ({ hourlyRate, travelTime, travelHourlyRate, onStateChange }) => (
     <div className="space-y-3">
         <h2 className="text-xl font-bold text-gray-800 border-b pb-2">Timpris & Resekostnad</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <NumberInputField label="Timkostnad (kr)" value={hourlyRate} onChange={e => onStateChange('hourlyRate', parseInt(e.target.value, 10) || 0)} />
-            <NumberInputField label="Avstånd enkel resa (km)" value={distance} onChange={e => onStateChange('distance', parseInt(e.target.value, 10) || 0)} />
-            <NumberInputField label="Pris per km (kr)" value={pricePerKm} onChange={e => onStateChange('pricePerKm', parseFloat(e.target.value) || 0)} step="0.1" />
+            <NumberInputField label="Timkostnad Service (kr)" value={hourlyRate} onChange={e => onStateChange('hourlyRate', parseInt(e.target.value, 10) || 0)} />
+            <NumberInputField label="Restid per tillfälle (h)" value={travelTime} onChange={e => onStateChange('travelTime', parseFloat(e.target.value) || 0)} step="0.5" />
+            <NumberInputField label="Timpris Resa (kr)" value={travelHourlyRate} onChange={e => onStateChange('travelHourlyRate', parseInt(e.target.value, 10) || 0)} />
         </div>
     </div>
 );
@@ -125,7 +155,7 @@ const ConfigPanel = ({ state, onStateChange, onCustomerInfoChange, onMultiplierC
     <CustomerInfoSection customerInfo={state.customerInfo} onChange={onCustomerInfoChange} />
     <IntervalSelector selectedIntervals={state.selectedIntervals} onToggle={onIntervalToggle} />
     <MultiplierInputs multipliers={state.multipliers} onChange={onMultiplierChange} />
-    <PricingAndTravelInputs hourlyRate={state.hourlyRate} pricePerKm={state.pricePerKm} distance={state.distance} onStateChange={onStateChange} />
+    <PricingAndTravelInputs hourlyRate={state.hourlyRate} travelTime={state.travelTime} travelHourlyRate={state.travelHourlyRate} onStateChange={onStateChange} />
   </div>
 );
 
@@ -191,7 +221,7 @@ const IntervalTable = ({ interval, onTaskHoursChange, onTaskRemove, onTaskAdd })
                             <tr key={task.id}>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{task.name}</td>
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                    <input type="number" step="0.05" value={task.currentHours} onChange={e => onTaskHoursChange(interval.key, task.id, parseFloat(e.target.value) || 0)} className="w-20 p-1 border border-gray-300 rounded-md focus:ring-primary focus:border-primary" />
+                                    <input type="number" step="0.05" onFocus={e => e.target.select()} value={task.currentHours} onChange={e => onTaskHoursChange(interval.key, task.id, parseFloat(e.target.value) || 0)} className="w-20 p-1 border border-gray-300 rounded-md focus:ring-primary focus:border-primary" />
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{task.multiplier}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{task.totalHours.toFixed(2)}</td>
@@ -302,11 +332,11 @@ const Summary = ({ grandTotal, onSave, onLoad, onPrint }) => {
   );
 };
 
-const PrintableQuote = ({ customerInfo, calculationResult, multipliers }) => {
+const PrintableQuote = ({ customerInfo, calculationResult, multipliers, travelTime, travelHourlyRate }) => {
     const currencyFormatter = new Intl.NumberFormat('sv-SE', { style: 'currency', currency: 'SEK' });
     const today = new Date().toLocaleDateString('sv-SE');
-    const { larmventilerVat, larmventilerTorr, dieselpumpar, flodesvakter, sprinklercentraler } = multipliers;
-    const showCalculationBasis = larmventilerVat > 0 || larmventilerTorr > 0 || dieselpumpar > 0 || flodesvakter > 0 || sprinklercentraler > 0;
+    const { larmventilerVat, larmventilerTorr, dieselpumpar, flodesvakter, sprinklercentraler, kondenskar } = multipliers;
+    const showCalculationBasis = larmventilerVat > 0 || larmventilerTorr > 0 || dieselpumpar > 0 || flodesvakter > 0 || sprinklercentraler > 0 || (larmventilerTorr > 0 && kondenskar > 0);
 
 
     return (
@@ -334,13 +364,14 @@ const PrintableQuote = ({ customerInfo, calculationResult, multipliers }) => {
             
             {showCalculationBasis && (
                 <section className="mb-12">
-                    <h2 className="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Beräkningsunderlag</h2>
+                    <h2 className="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Beräkningsunderlag (Antal)</h2>
                     <div className="text-gray-700 space-y-1">
-                        {larmventilerVat > 0 && <p><span className="font-semibold">Antal larmventiler (våt):</span> {larmventilerVat} st</p>}
-                        {larmventilerTorr > 0 && <p><span className="font-semibold">Antal larmventiler (torr):</span> {larmventilerTorr} st</p>}
-                        {dieselpumpar > 0 && <p><span className="font-semibold">Antal dieselpumpar:</span> {dieselpumpar} st</p>}
-                        {flodesvakter > 0 && <p><span className="font-semibold">Antal flödesvakter:</span> {flodesvakter} st</p>}
-                        {sprinklercentraler > 0 && <p><span className="font-semibold">Antal sprinklercentraler:</span> {sprinklercentraler} st</p>}
+                        {larmventilerVat > 0 && <p><span className="font-semibold">Larmventiler (våt):</span> {larmventilerVat} st</p>}
+                        {larmventilerTorr > 0 && <p><span className="font-semibold">Larmventiler (torr):</span> {larmventilerTorr} st</p>}
+                        {dieselpumpar > 0 && <p><span className="font-semibold">Dieselpumpar:</span> {dieselpumpar} st</p>}
+                        {flodesvakter > 0 && <p><span className="font-semibold">Flödesvakter:</span> {flodesvakter} st</p>}
+                        {sprinklercentraler > 0 && <p><span className="font-semibold">Sprinklercentraler:</span> {sprinklercentraler} st</p>}
+                        {larmventilerTorr > 0 && kondenskar > 0 && <p><span className="font-semibold">Kondenskärl:</span> {kondenskar} st</p>}
                     </div>
                 </section>
             )}
@@ -369,7 +400,10 @@ const PrintableQuote = ({ customerInfo, calculationResult, multipliers }) => {
                 </table>
             </section>
             
-            <section className="flex justify-end mt-8">
+            <section className="flex flex-col items-end mt-8">
+                <div className="text-sm text-gray-600 mb-2">
+                    Beräknat med restid: {travelTime}h à {currencyFormatter.format(travelHourlyRate)} per tillfälle.
+                </div>
                  <div className="w-full max-w-sm p-6 bg-gray-100 rounded-lg">
                     <div className="flex justify-between items-center">
                         <span className="text-lg font-medium text-gray-800">Total årskostnad (exkl. moms):</span>
@@ -394,9 +428,12 @@ const createInitialTasks = () => {
         const intervalKey = key;
         tasks[intervalKey] = INTERVAL_DEFINITIONS[intervalKey].taskIds.map(taskId => {
             const task = ALL_TASKS.find(t => t.id === taskId);
-            if (!task) throw new Error(`Task with id ${taskId} not found`);
+            if (!task) {
+                console.warn(`Task with id ${taskId} not found for interval ${intervalKey}`);
+                return null;
+            }
             return { ...task, currentHours: task.baseHours };
-        });
+        }).filter(Boolean);
     }
     return tasks;
 };
@@ -404,10 +441,10 @@ const createInitialTasks = () => {
 const INITIAL_STATE = {
     customerInfo: { name: '', facility: '', address: '', contact: '', offertnummer: '' },
     selectedIntervals: [],
-    multipliers: { larmventilerVat: 1, larmventilerTorr: 0, dieselpumpar: 0, flodesvakter: 0, sprinklercentraler: 0, },
-    hourlyRate: 650,
-    pricePerKm: 10,
-    distance: 0,
+    multipliers: { larmventilerVat: 1, larmventilerTorr: 0, dieselpumpar: 0, flodesvakter: 0, sprinklercentraler: 0, kondenskar: 1 },
+    hourlyRate: 700,
+    travelTime: 0,
+    travelHourlyRate: 700,
     tasksByInterval: createInitialTasks(),
 };
 
@@ -443,7 +480,21 @@ const App = () => {
             .map(key => {
             const definition = INTERVAL_DEFINITIONS[key];
             let totalHours = 0;
-            const calculatedTasks = state.tasksByInterval[key].map(task => {
+            
+            // Filter tasks based on global logic (e.g. diesel 0 -> remove diesel tasks)
+            let filteredTasks = state.tasksByInterval[key].filter(task => {
+                // Logic 1: Diesel check
+                if (state.multipliers.dieselpumpar === 0 && DIESEL_TASKS.includes(task.id)) {
+                    return false;
+                }
+                // Logic 2: Kondenskärl check (Only show in if Larmventiler Torr > 0)
+                if (task.id === 'kondenskar' && state.multipliers.larmventilerTorr === 0) {
+                    return false;
+                }
+                return true;
+            });
+
+            const calculatedTasks = filteredTasks.map(task => {
                 let multiplier = 1;
                 if (task.id === 'flodesvakt_pressostat') {
                     multiplier = state.multipliers.larmventilerVat + state.multipliers.larmventilerTorr + state.multipliers.flodesvakter;
@@ -461,7 +512,9 @@ const App = () => {
                 return { ...task, multiplier, totalHours: taskTotalHours, cost };
             });
 
-            const travelCostPerOccasion = state.distance * state.pricePerKm * 2; // * 2 for round trip
+            // Travel Cost Calculation: Time * Hourly Rate
+            const travelCostPerOccasion = state.travelTime * state.travelHourlyRate;
+            
             const costPerOccasion = (totalHours * state.hourlyRate) + travelCostPerOccasion;
             const totalCostPerYear = costPerOccasion * definition.occasions;
 
@@ -533,6 +586,15 @@ const App = () => {
                     const content = readerEvent.target.result;
                     const loadedState = JSON.parse(content);
                     if (loadedState && loadedState.customerInfo && loadedState.tasksByInterval) {
+                       // Handle migration of old travel fields if loading old file
+                       if (loadedState.distance !== undefined && loadedState.travelTime === undefined) {
+                           loadedState.travelTime = 0;
+                           loadedState.travelHourlyRate = loadedState.hourlyRate || 700;
+                       }
+                       // Ensure new multiplier keys exist
+                       if (!loadedState.multipliers.kondenskar) {
+                           loadedState.multipliers.kondenskar = 0;
+                       }
                        setState(loadedState);
                        alert('Kalkylen har laddats!');
                     } else {
@@ -556,7 +618,13 @@ const App = () => {
 
     return (
         <>
-            <PrintableQuote customerInfo={state.customerInfo} calculationResult={calculationResult} multipliers={state.multipliers} />
+            <PrintableQuote 
+                customerInfo={state.customerInfo} 
+                calculationResult={calculationResult} 
+                multipliers={state.multipliers} 
+                travelTime={state.travelTime}
+                travelHourlyRate={state.travelHourlyRate}
+            />
             <div className="screen-only">
                 <div className="min-h-screen bg-gray-100 text-gray-800">
                     <header className="bg-primary text-white shadow-md">
