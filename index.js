@@ -72,7 +72,8 @@ const NumberInputField = ({ label, value, onChange, step = "1" }) => (
       type="number" 
       value={value} 
       onChange={onChange} 
-      onFocus={(e) => e.target.select()} // Auto-select on focus to easily replace 0
+      onFocus={(e) => e.target.select()} // Auto-select on focus
+      onClick={(e) => e.target.select()} // Auto-select on click
       step={step} 
       className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm" 
     />
@@ -341,10 +342,13 @@ const PrintableQuote = ({ customerInfo, calculationResult, multipliers, travelTi
 
     return (
         <div className="hidden print:block p-8 font-sans">
-            <header className="flex justify-between items-start mb-12 border-b-2 border-primary pb-4">
-                <div>
-                    <h1 className="text-3xl font-bold text-primary">Offert Serviceavtal</h1>
-                    <p className="text-gray-600">Sprinkleranläggning</p>
+            <header className="flex justify-between items-start mb-12 border-b-2 border-black pb-4">
+                <div className="flex items-center">
+                    <img src="./icon.svg" alt="Logotyp" className="h-9 w-auto mr-6" />
+                    <div>
+                        <h1 className="text-3xl font-bold text-black">Offert Serviceavtal</h1>
+                        <p className="text-black">Sprinkleranläggning</p>
+                    </div>
                 </div>
                 <div className="text-right">
                     <p className="font-semibold">Datum: {today}</p>
@@ -414,7 +418,7 @@ const PrintableQuote = ({ customerInfo, calculationResult, multipliers, travelTi
 
             <footer className="mt-24 pt-4 border-t text-center text-xs text-gray-500">
                 <p>Priser är angivna exklusive moms. Offerten är giltig i 30 dagar.</p>
-                <p className="font-semibold mt-2">Sprinklerteamet Norr AB | Tegelbruksvägen 18b, 907 42 Umeå | Organisationsnummer: 559309-1704</p>
+                <p className="font-semibold mt-2">Sprinklerteamet Norr AB | Tegelbruksvägen 18b, 907 42 Umeå | Organisationsnummer: 559309-1704 | 090-71 72 60</p>
             </footer>
         </div>
     );
